@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PocketLedger – Low-fi Prototype</title>
+<style>
+:root{--bg:#111;--ph:#000;--card:#161a20;--grp:#25282d;--ink:#fff;--mut:#8b93a1;--line:#262c35;--acc:#2f80ff;--hdr:#1c4fb0;--err:#ff5d5d;--ok:#3ddc84;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);font:15px/1.35 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);display:flex;flex-direction:column;align-items:center;padding:16px}
+.note{max-width:360px;color:var(--mut);font-size:12px;text-align:center;margin:0 0 10px}
+.phone{width:360px;max-width:100%;height:680px;background:var(--ph);border:2px solid #3a414c;border-radius:28px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.screen{display:none;flex-direction:column;flex:1;min-height:0}.screen.on{display:flex}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 10px;background:var(--hdr);font-weight:700;font-size:17px;flex:none}
+.hdr .s{min-width:56px;font-weight:500;font-size:15px;color:#fff;border:0;background:none;padding:0;text-align:left}.hdr .s.r{text-align:right}
+.hdr svg{stroke:#fff}
+.body{flex:1;overflow-y:auto;padding:0 0 8px}.pad{padding:14px 16px}
+.sub{padding:8px 16px 4px;font-size:13px;color:var(--mut)}.sub.r{text-align:right;color:#fff;font-weight:600;padding-top:0}
+.grp{display:flex;justify-content:space-between;background:var(--grp);padding:7px 16px;font-size:13px;font-weight:700;color:#ddd}
+svg{width:22px;height:22px;stroke:var(--acc);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ib{border:0;background:none;padding:0;display:flex;cursor:pointer;min-width:56px;justify-content:flex-end}
+.env{padding:9px 16px;border-bottom:1px solid var(--line)}.env .top{display:flex;justify-content:space-between;align-items:center;font-size:17px}.env .nm{display:flex;gap:8px;align-items:center}.env .amt{font-weight:600}
+.env .bw{display:flex;gap:10px;align-items:flex-end;margin-top:4px}.env small{color:var(--mut);font-size:12px}
+.bar{flex:1;height:7px;background:#2b3038;position:relative;margin-bottom:3px}.bar i{display:block;height:100%;background:var(--acc)}.bar u{position:absolute;top:-3px;width:2px;height:13px;background:#fff}
+.tr{display:flex;align-items:center;gap:8px;padding:9px 16px;border-bottom:1px solid var(--line)}.tr .t{flex:1}.tr .t b{display:block;font-size:15px}.tr .t span{font-size:12px;color:var(--mut)}
+.del{border:0;background:none;padding:2px;cursor:pointer;display:flex}.del svg{width:19px;height:19px}
+button{font:inherit;border:1.5px solid var(--acc);background:none;color:var(--ink);border-radius:12px;padding:11px 14px;cursor:pointer}
+button.p{background:var(--acc);color:#fff;font-weight:600}
+input[type=number],input[type=text]{width:100%;font:inherit;padding:11px;border:1.5px solid var(--line);border-radius:10px;margin-top:4px;background:var(--card);color:var(--ink)}
+input.bad{border-color:var(--err)}.err{color:var(--err);font-size:13px;min-height:18px;margin-top:4px}.mut{color:var(--mut);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.cat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 4px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);font-size:12px;cursor:pointer}.cat.sel{border-color:var(--acc);background:#10264a}
+h2{font-size:12px;margin:12px 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.center{align-items:center;text-align:center;justify-content:center;gap:10px;padding:16px}.icon{font-size:52px}
+label.sw{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--mut);margin-top:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 16px}.card h3{margin:0 0 4px;font-size:16px}
+.rw{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px}.rw .t{flex:1}
+.tabs{display:flex;border-top:1px solid var(--line);background:#0a0c10;padding:6px 2px 10px;justify-content:space-around;flex:none}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;color:var(--mut);border:0;padding:2px 6px;border-radius:8px}.tab svg{stroke:var(--mut)}.tab.act{color:var(--acc)}.tab.act svg{stroke:var(--acc)}
+.toast{position:absolute;left:12px;right:12px;bottom:70px;background:#222a35;border:1px solid var(--acc);border-radius:12px;padding:9px 12px;display:none;justify-content:space-between;align-items:center;font-size:13px}.toast.on{display:flex}.toast button{border:0;color:var(--acc);padding:0 4px;font-weight:600}
+.modal{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:18px;z-index:5}.modal.on{display:flex}
+.mc{background:#fff;color:#1b1f24;border-radius:20px;padding:20px;width:100%;position:relative}.mc .k{font-size:11px;letter-spacing:.08em;color:#8a9099}.mc h3{margin:6px 0 4px;font-size:21px}.mc p{margin:0 0 12px;font-size:13px;color:#6b727b}
+.mc input{background:#f4f6f8;color:#1b1f24;border-color:#d5dae0}.mc .x{position:absolute;right:14px;top:14px;border:0;padding:4px;background:#eef0f3;border-radius:10px;display:flex}.mc .x svg{stroke:#555;width:18px;height:18px}
+.mc button.p{width:100%;margin-top:12px}
+</style></head><body>
+<p class="note">PocketLedger – low-fidelity interactive prototype (dark theme). First enter your name. Tap the compose icon to add an expense; on the Transactions tab tap the trash icon to delete one. “Simulate no connection” shows the error/recovery state.</p>
+<div class="phone" id="app">
+
+<section class="screen on" id="home">
+ <div class="hdr"><span class="s">Edit</span><span>Envelopes</span><button class="ib" aria-label="Add expense" onclick="openAdd()"><svg viewBox="0 0 24 24"><path d="M11 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-6M18.5 3.5a2.1 2.1 0 0 1 3 3L12 16l-4 1 1-4z"/></svg></button></div>
+ <div class="body">
+  <div class="sub" id="hi"></div><div class="sub r">All Envelopes: <span id="all"></span></div>
+  <div class="grp"><span>Monthly</span><b id="gtot"></b></div><div id="envs"></div>
+ </div>
+</section>
+
+<section class="screen" id="trans">
+ <div class="hdr"><span class="s"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></span><span>Transactions</span><button class="ib" aria-label="Add expense" onclick="openAdd()"><svg viewBox="0 0 24 24"><path d="M11 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-6M18.5 3.5a2.1 2.1 0 0 1 3 3L12 16l-4 1 1-4z"/></svg></button></div>
+ <div class="body" id="tlist"></div>
+</section>
+
+<section class="screen" id="add">
+ <div class="hdr"><button class="s" onclick="go('home')">Cancel</button><span>Add expense</span><span class="s"></span></div>
+ <div class="body pad" style="display:flex;flex-direction:column">
+  <label class="mut">Amount (₸)<input type="number" id="amt" inputmode="numeric" placeholder="0" oninput="clr()"></label>
+  <div class="err" id="amterr"></div>
+  <label class="mut">Note (optional)<input type="text" id="note" placeholder="e.g. lunch"></label>
+  <label class="sw"><input type="checkbox" id="off"> Simulate no connection</label>
+  <h2>Category</h2><div class="grid" id="cats"></div>
+  <button class="p" style="margin-top:auto" onclick="save()">Save expense</button>
+ </div>
+</section>
+
+<section class="screen center" id="done">
+ <div class="icon" style="color:var(--ok)">✔</div><h1 style="margin:0">Expense saved</h1>
+ <div id="donetxt" class="mut"></div>
+ <div class="card" style="width:100%"><div class="mut">Left this month</div><div style="font-size:28px;font-weight:700" id="left2"></div></div>
+ <button class="p" style="width:100%" onclick="openAdd()">Add another</button>
+ <button style="width:100%" onclick="go('home')">Back to home</button>
+</section>
+
+<section class="screen center" id="offline">
+ <div class="icon" style="color:var(--err)">⚠</div><h1 style="margin:0">No connection</h1>
+ <div class="mut" style="font-size:13px">Your expense is saved on this phone and will sync automatically when the Internet is back. Nothing is lost.</div>
+ <div class="err" id="offmsg"></div>
+ <button class="p" style="width:100%" onclick="retry()">Retry sync</button>
+ <button style="width:100%" onclick="go('trans')">Back to transactions (sync later)</button>
+ <button style="border:0;color:var(--acc)" onclick="$('off').checked=false;$('offmsg').textContent='Demo: connection is back. Tap Retry sync.'">Demo: turn connection back on</button>
+</section>
+
+<section class="screen" id="report">
+ <div class="hdr"><span class="s"></span><span>Reports</span><span class="s"></span></div>
+ <div class="body">
+  <div class="card"><h3>Spending by Envelope</h3><div class="mut">Oct 1, 2026 – Oct 31, 2026</div>
+   <div id="donut" style="width:130px;margin:6px auto"></div><div id="legend"></div></div>
+  <div class="card"><h3>Income vs Spending</h3><div class="mut">Oct 1, 2026 – Oct 31, 2026</div>
+   <div class="rw"><span class="t">Income:</span><b id="inc"></b></div><div class="rw"><span class="t">Spending:</span><b id="spd"></b></div><div class="rw"><span class="t">Net:</span><b id="net"></b></div></div>
+ </div>
+</section>
+
+<section class="screen" id="acc">
+ <div class="hdr"><span class="s">Edit</span><span>Accounts</span><span class="s"></span></div>
+ <div class="body">
+  <div class="sub r" style="padding-top:8px">All Accounts: <span id="accall"></span></div>
+  <div class="grp"><span>Checking, Savings, Cash</span><b id="accsum"></b></div>
+  <div class="env"><div class="top"><span>My Account</span><b class="amt" id="accbal"></b></div></div>
+  <div class="grp"><span>Debt</span><b>0 ₸</b></div>
+  <div class="sub">Tap Edit to add a Debt Account. Track your debt balance and payment.</div>
+ </div>
+</section>
+
+<section class="screen" id="more">
+ <div class="hdr"><span class="s"></span><span>More</span><span class="s"></span></div>
+ <div class="body">
+  <div class="grp"><span>Profile</span><b></b></div>
+  <div class="env" onclick="editName()" style="cursor:pointer"><div class="top"><span>Name</span><b class="amt" id="morename"></b></div><small style="color:var(--acc)">Change name</small></div>
+  <div class="grp"><span>Budget</span><b></b></div>
+  <div class="env"><div class="top"><span>Monthly budget</span><b class="amt">150 000 ₸</b></div></div>
+  <div class="env"><div class="top"><span>Currency</span><b class="amt">Tenge (₸)</b></div></div>
+  <div class="grp"><span>Data</span><b></b></div>
+  <div class="env"><div class="top"><span>Cloud sync</span><b class="amt" id="syncst">On</b></div></div>
+ </div>
+</section>
+
+<div class="toast" id="toast"><span>Expense deleted</span><button onclick="undo()">Undo</button></div>
+<nav class="tabs" id="tabs">
+ <button class="tab" id="t_home" onclick="go('home')"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 8l9 6 9-6"/></svg>Envelopes</button>
+ <button class="tab" id="t_trans" onclick="go('trans')"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h12"/></svg>Transactions</button>
+ <button class="tab" id="t_acc" onclick="go('acc')"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></svg>Accounts</button>
+ <button class="tab" id="t_report" onclick="go('report')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 12V3M12 12l6.5 5"/></svg>Reports</button>
+ <button class="tab" id="t_more" onclick="go('more')"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>More</button>
+</nav>
+
+<div class="modal on" id="modal"><div class="mc">
+ <button class="x" aria-label="Close" onclick="closeName()"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+ <div class="k">YOUR PROFILE</div><h3>What should we call you?</h3><p>Your name is shown in the greeting and saved on this device.</p>
+ <label style="font-size:13px;font-weight:600">Your name<input type="text" id="nm" placeholder="e.g. Aigerim" oninput="$('nmerr').textContent=''"></label>
+ <div class="err" id="nmerr"></div><button class="p" onclick="saveName()">Save name ✓</button>
+</div></div>
+</div>
+
+<script>
+var IC={Food:'<path d="M6 3v7a2 2 0 0 0 4 0V3M8 3v18M17 3c-2 2-3 5-3 8h3v10"/>',Transport:'<rect x="4" y="4" width="16" height="13" rx="2"/><path d="M4 11h16M7 21v-4M17 21v-4"/>',Study:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/>',Fun:'<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2.5 4 2.5S16 14 16 14M9 9.5h.01M15 9.5h.01"/>',Other:'<circle cx="6" cy="6" r="1.5"/><circle cx="12" cy="6" r="1.5"/><circle cx="18" cy="6" r="1.5"/><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/>'};
+function ico(n,s){return'<svg viewBox="0 0 24 24"'+(s?' style="width:'+s+'px;height:'+s+'px"':'')+'>'+IC[n]+'</svg>'}
+var TRASH='<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
+var CATS=[["Food",50000,"#2f80ff"],["Transport",15000,"#6aa5ff"],["Study",30000,"#a9c8ff"],["Fun",20000,"#ffffff"],["Other",35000,"#5b6b84"]];
+var BUDGET=150000,sel="Food",uid=5,last=null,tm,NAME="",TODAY=9,WD={9:"Fri",8:"Thu",7:"Wed",6:"Tue"};
+var ex=[{id:1,a:2400,c:"Food",n:"Lunch",s:1,d:8},{id:2,a:500,c:"Transport",n:"Bus",s:1,d:8},{id:3,a:12000,c:"Study",n:"Textbook",s:1,d:7},{id:4,a:3800,c:"Fun",n:"Cinema",s:1,d:6}];
+function $(i){return document.getElementById(i)}
+function fmt(n){return n.toLocaleString("en-US").replace(/,/g," ")+" ₸"}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+var TAB={home:"t_home",trans:"t_trans",acc:"t_acc",report:"t_report",more:"t_more"};
+function go(s){document.querySelectorAll(".screen").forEach(function(e){e.classList.remove("on")});$(s).classList.add("on");
+ $("tabs").style.display=TAB[s]?"flex":"none";document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("act")});if(TAB[s])$(TAB[s]).classList.add("act");
+ if(s!="trans")$("toast").classList.remove("on");if(s=="home")renderHome();if(s=="trans")renderTrans();if(s=="report")renderReport();if(s=="acc"){var b=fmt(BUDGET-total());$("accall").textContent=b;$("accsum").textContent=b;$("accbal").textContent=b}if(s=="more")$("morename").textContent=NAME||"Guest"}
+function editName(){$("nm").value=NAME;$("modal").classList.add("on")}
+function total(){return ex.reduce(function(t,e){return t+e.a},0)}
+function spent(c){return ex.filter(function(e){return e.c==c}).reduce(function(x,e){return x+e.a},0)}
+function renderHome(){$("hi").textContent=NAME?"Hi, "+NAME:"Hi there";$("all").textContent=fmt(BUDGET-total());$("gtot").textContent=fmt(BUDGET-total());
+ var tick=TODAY/31*100;$("envs").innerHTML=CATS.map(function(c){var s=spent(c[0]);return'<div class="env"><div class="top"><span class="nm">'+ico(c[0],20)+c[0]+'</span><b class="amt">'+fmt(c[1]-s)+'</b></div><div class="bw"><div class="bar"><i style="width:'+Math.min(100,s/c[1]*100)+'%"></i><u style="left:'+tick+'%"></u></div><small>'+fmt(c[1])+'</small></div></div>'}).join("")}
+function renderTrans(){var l=ex.slice().sort(function(a,b){return b.d-a.d||b.id-a.id}),h="",d=-1;
+ l.forEach(function(e){if(e.d!=d){d=e.d;h+='<div class="grp"><span>'+WD[d]+'</span><b>Oct '+d+', 2026</b></div>'}
+ h+='<div class="tr">'+ico(e.c,20)+'<div class="t"><b>'+(e.n?esc(e.n):e.c)+'</b><span>'+e.c+' | Cash'+(e.s?"":' | <span style="color:var(--err)">pending sync</span>')+'</span></div><b>−'+fmt(e.a)+'</b><button class="del" aria-label="Delete expense" onclick="del('+e.id+')">'+TRASH+'</button></div>'});
+ $("tlist").innerHTML=h||'<div class="sub">No expenses yet.</div>'}
+function del(id){var i=ex.findIndex(function(e){return e.id==id});if(i<0)return;last={e:ex[i],i:i};ex.splice(i,1);renderTrans();
+ $("toast").classList.add("on");clearTimeout(tm);tm=setTimeout(function(){$("toast").classList.remove("on");last=null},5000)}
+function undo(){if(last){ex.splice(last.i,0,last.e);last=null}$("toast").classList.remove("on");renderTrans()}
+function renderCats(){$("cats").innerHTML=CATS.map(function(c){return'<div class="cat'+(c[0]==sel?" sel":"")+'" onclick="sel=\''+c[0]+'\';renderCats()">'+ico(c[0])+c[0]+'</div>'}).join("")}
+function openAdd(){$("amt").value="";$("note").value="";clr();sel="Food";renderCats();go("add")}
+function clr(){$("amterr").textContent="";$("amt").classList.remove("bad")}
+function save(){var a=Math.round(parseFloat($("amt").value));
+ if(!(a>0)){$("amterr").textContent="Enter an amount greater than 0.";$("amt").classList.add("bad");return}
+ var off=$("off").checked;ex.push({id:uid++,a:a,c:sel,n:$("note").value.trim(),s:off?0:1,d:TODAY});
+ if(off){$("offmsg").textContent="";go("offline");return}
+ $("donetxt").textContent=fmt(a)+" · "+sel;$("left2").textContent=fmt(BUDGET-total());go("done")}
+function retry(){if($("off").checked){$("offmsg").textContent="Still offline. We will try again later.";return}
+ ex.forEach(function(e){e.s=1});go("trans")}
+function renderReport(){var t=total(),C=2*Math.PI*36,acc=0,c="",l="";CATS.forEach(function(k){var s=spent(k[0]);
+ if(s){var len=s/t*C;c+='<circle cx="50" cy="50" r="36" fill="none" stroke="'+k[2]+'" stroke-width="16" stroke-dasharray="'+len+' '+(C-len)+'" stroke-dashoffset="'+(-acc)+'" transform="rotate(-90 50 50)"/>';acc+=len}
+ l+='<div class="rw"><span style="width:10px;height:10px;border-radius:2px;background:'+k[2]+'"></span><span class="t">'+k[0]+'</span><b>'+fmt(s)+'</b></div>'});
+ $("donut").innerHTML='<svg viewBox="0 0 100 100" style="width:130px;height:130px"><circle cx="50" cy="50" r="36" fill="none" stroke="#262c35" stroke-width="16"/>'+c+'</svg>';$("legend").innerHTML=l;
+ $("inc").textContent=fmt(BUDGET);$("spd").textContent=fmt(t);$("net").textContent=fmt(BUDGET-t)}
+function saveName(){var v=$("nm").value.trim();if(!v){$("nmerr").textContent="Please enter your name.";return}
+ NAME=v;try{localStorage.setItem("pl_name",v)}catch(e){}$("modal").classList.remove("on");renderHome();$("morename").textContent=NAME}
+function closeName(){$("modal").classList.remove("on");renderHome()}
+try{NAME=localStorage.getItem("pl_name")||""}catch(e){}
+if(NAME)$("modal").classList.remove("on");
+go("home");
+</script></body></html>
